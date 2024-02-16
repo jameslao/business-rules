@@ -60,7 +60,8 @@ def check_conditions_recursively(conditions, defined_variables, rule):
             condition value, condition params)
     """
     keys = list(conditions.keys())
-    if keys == ["all"]:
+    negated = keys.get("negated", False)
+    if "all" in keys:
         assert len(conditions["all"]) >= 1
         matches = []
         for condition in conditions["all"]:
@@ -69,18 +70,18 @@ def check_conditions_recursively(conditions, defined_variables, rule):
             )
             matches.extend(matches_results)
             if not check_condition_result:
-                return False, []
-        return True, matches
+                return negated, []
+        return not negated, matches
 
-    elif keys == ["any"]:
+    elif "any" in keys:
         assert len(conditions["any"]) >= 1
         for condition in conditions["any"]:
             check_condition_result, matches_results = check_conditions_recursively(
                 condition, defined_variables, rule
             )
             if check_condition_result:
-                return True, matches_results
-        return False, []
+                return not negated, matches_results
+        return negated, []
 
     else:
         # help prevent errors - any and all can only be in the condition dict
